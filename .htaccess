@@ -1,0 +1,4 @@
+<Files "plan.php">
+	Order Deny,Allow
+	Deny from all
+</Files>
