@@ -10,7 +10,7 @@ $buttons = [
 					"label" => "&#128240; Новости",
 					"payload" => json_encode(["button" => "news"])
 				],
-				"color" => "primary"
+				"color" => "secondary"
 			]
 		],
 
@@ -22,30 +22,28 @@ $buttons = [
 					"payload" => json_encode(["button" => "rasp"])
 				],
 				"color" => "positive"
-			]
-		],
-
-		[
-			[
-				"action" => [
-					"type" => "text",
-					"label" => "Сегодня",
-					"payload" => json_encode(["button" => "today"])
-				],
-				"color" => "secondary"
 			],
 
 			[
 				"action" => [
 					"type" => "text",
-					"label" => "Завтра",
+					"label" => "&#128217; Завтра",
 					"payload" => json_encode(["button" => "tomorrow"])
 				],
-				"color" => "secondary"
+				"color" => "primary"
 			]
 		]
 	]
 ];
+
+function getButtons($news_count) {
+	global $buttons;
+	if ($news_count > 0) {
+		$buttons['buttons'][0][0]['action']['label'] .= ' [' . $news_count . ']';
+		$buttons['buttons'][0][0]['color'] = "primary";
+	}
+	return $buttons;
+}
 
 $msg_buttons = [
 	"one_time" => false,

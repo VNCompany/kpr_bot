@@ -4,6 +4,7 @@ include_once "vk_funcs.php";
 include_once "cmdman.php";
 include_once "dbworker.php";
 include_once "vk_buttons.php";
+include_once "fileappender.php";
 
 $rasp_last_update = "14 сен 2020 г. 19:17";
 $rasp_doc = "doc-186344202_568844688";
@@ -73,7 +74,7 @@ switch($req->type){
 			die();
 		}
 
-		if ($text == "10-4"){
+		if ($text == "10-4" || $text == "10-4."){
 			sendMessage($peer, "Это значит принято");
 			echo "ok";
 			die();
@@ -81,14 +82,31 @@ switch($req->type){
 
 		if ($text == "!новость"){
 			if (is_admin($obj->from_id, $admins, $peer)) {
+
+				function makeNewsletter($msg) {
+					$res = "Свежая новость! \n";
+					$res .= $msg;
+					$fa = new FileAppender("users.txt", ';');
+					$users = $fa->getall();
+					sendMessageToIds($users, $res);
+				}
+
 				if (!empty($obj->fwd_messages)) {
 					$dbw = new DbWorker();
-					$dbw->add($obj->fwd_messages[0]->text);
-					sendMessage($peer, "&#9989; Новость успешно добавлена");
+					$res = "";
+					foreach ($obj->fwd_messages as $msg) {
+						$res .= $msg->text . "\n";
+					}
+					$dbw->add($res);
+					
+					makeNewsletter($res);
+					sendMessage($peer, "&#9989; Новость успешно добавлена", null, json_encode(getButtons($dbw->getCount())));
 				} elseif (!empty($obj->reply_message)) {
 					$dbw = new DbWorker();
 					$dbw->add($obj->reply_message->text);
-					sendMessage($peer, "&#9989; Новость успешно добавлена");
+
+					makeNewsletter($obj->reply_message->text);
+					sendMessage($peer, "&#9989; Новость успешно добавлена", null, json_encode(getButtons($dbw->getCount())));
 				} else{
 					sendMessage($peer, "Пустое сообщение");
 				}
@@ -121,7 +139,8 @@ switch($req->type){
 							sendMessage($peer, json_encode(readReminds(true), JSON_UNESCAPED_UNICODE));
 							break;
 						case "rasp":
-							sendMessage($peer, getRaspList());
+							//sendMessage($peer, getRaspList());
+							include_once "plan.php";
 							break;
 						case "temp":
 							sendMessage($peer, shell_exec("python3 /home/victor/temp.py"));
@@ -176,7 +195,7 @@ switch($req->type){
 					if (is_numeric($id)) {
 						$dbw = new DbWorker();
 						$dbw->delete($id);
-						sendMessage($peer, "Запись " . $id . " удалена.");
+						sendMessage($peer, "Запись " . $id . " удалена.", null, json_encode(getButtons($dbw->getCount())));
 					} else {
 						sendMessage($peer, "&#9888; Введите правильный id");
 					}
@@ -187,13 +206,24 @@ switch($req->type){
 				sendMessage($peer, "Расписание КПР-21. Последнее обновление: " . $rasp_last_update . ".", $rasp_doc);
 			},
 
-			"keyboard" => function () use ($peer, $buttons) {
-				sendMessage($peer, "Клавиатура включена", null, json_encode($buttons));
+			"keyboard" => function () use ($peer) {
+				$dbw = new DbWorker();
+				sendMessage($peer, "Клавиатура включена", null, json_encode(getButtons($dbw->getCount())));
 			},
 
 			"keyboarddel" => function () use ($peer, $buttons_clear) {
 				sendMessage($peer, "Клавиатура выключена", null, json_encode($buttons_clear));
 			},
+
+			"рассылка" => function() use ($obj) {
+				$fa = new FileAppender("users.txt", ';');
+				if(!$fa->itemExists($obj->from_id)) {
+					$fa->append($obj->from_id);
+					sendMessage($obj->peer_id, sprintf("[id%d|Вы] успешно подписались на рассылку", $obj->from_id));
+				} else {
+					sendMessage($obj->peer_id, sprintf("[id%d|Вы] уже подписаны на рассылку", $obj->from_id));
+				}
+			}
 		]);
 
 		$c->execute($text);

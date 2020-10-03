@@ -23,11 +23,15 @@ class DbWorker {
 
 	public function getText() {
 		$text = "Новости:\n";
+		$c = 0;
 		foreach($this->getAll() as $row) {
 			$ts = strtotime($row['date']);
 			$date = date('d.m.Y', $ts);
-			$text .= sprintf("&#128221; %s (&#128197; %s) [%d].\n", $row['text'], $date, $row['id']);
+			$text .= sprintf("&#128221; %s (&#128197; %s) [%d].\n\n", $row['text'], $date, $row['id']);
+			$c++;
 		}
+		
+		if ($c == 0) $text .= "нет новостей\n";
 		return $text;
 	}
 

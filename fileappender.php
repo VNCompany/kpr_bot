@@ -19,6 +19,13 @@ class FileAppender {
 
 	}
 
+	public function itemExists($item) {
+		$arr = $this->getall();
+		if (!isset($arr)) return false;
+
+		return in_array($item, $arr);
+	}
+
 	public function getall() {
 		if (!file_exists($this->file)) return null;
 

@@ -3,6 +3,7 @@
 include_once "dbworker.php";
 include_once "fileappender.php";
 include_once "functions.php";
+include_once "passwd.php";
 
 function sendRequest($method, $params){
 	global $access_token;
@@ -27,6 +28,18 @@ function sendMessage($peer_id, $message, $attachment = null, $keyboard = null){
 	return sendRequest("messages.send", $q);
 }
 
+function sendMessageToIds($user_ids, $message, $keyboard = null) {
+	$q = [
+		"v" => "5.101",
+		"random_id" => rand(0, getrandmax()),
+		"user_ids" => implode(',', $user_ids),
+		"message" => $message
+	];
+	if (isset($keyboard)) $q['keyboard'] = $keyboard;
+
+	return sendRequest("messages.send", $q);
+}
+
 function getWeekType($reverse = false){
 	if(date('W') % 2 == 0)
 		return $reverse ? "even" : "odd";
@@ -35,7 +48,7 @@ function getWeekType($reverse = false){
 }
 
 function getRasp($week, $day){
-	$rasp = json_decode(file_get_contents("/var/www/service/kpr/rasp.json"), true);
+	$rasp = json_decode(file_get_contents("rasp.json"), true);
 	return $rasp[$week][$day];	
 }
 
@@ -59,12 +72,15 @@ function getRaspList($msg = true, $date = "сегодня", $day_n = null, $week
 			$result .= "&#127379; Нет пары\n";
 		else {
 			$item_hw = empty($hw[$index + 1]) ? "" : ": " . $hw[$index + 1];
-			$result .= sprintf("%d&#8419; %s -- %s [%s]%s\n", $index + 1, 
-									    $item[0], 
-									    $item[1], 
-									    $item[2],
-									    $item_hw
-			);
+			if ($item_hw != ": !free")
+				$result .= sprintf("%d&#8419; %s -- %s [%s]%s\n", $index + 1, 
+										    $item[0], 
+										    $item[1], 
+										    $item[2],
+										    $item_hw
+				);
+			else
+				$result .= "&#127379; Нет пары\n";
 		}
 	}
 
@@ -82,8 +98,10 @@ function getRaspList($msg = true, $date = "сегодня", $day_n = null, $week
 		$result .= "\nХорошего дня! &#129302;";
 	}
 
-	if(file_exists("/var/www/service/kpr/reminds.txt") && $msg === true)
-		unlink("/var/www/service/kpr/reminds.txt");
+	$result .= "\n\n" . sprintf("Добавить домашнее задание: http://mistersandman.ru/kpr/ \n© Mr.Sandman, " . date("Y"));
+
+	if(file_exists("reminds.txt") && $msg === true)
+		unlink("reminds.txt");
 	return $result;
 }
 
@@ -97,7 +115,7 @@ function is_admin($from_id, $valid_ids, $peer_id){
 }
 
 function writeRemind($text){
-	$fa = new FileAppender("/var/www/service/kpr/reminds.txt", ';');
+	$fa = new FileAppender("reminds.txt", ';');
 	
 	if ($text == "") return false;
 
@@ -109,7 +127,7 @@ function writeRemind($text){
 function readReminds($clear = false){
 	mb_internal_encoding("UTF-8");
 	
-	$fa = new FileAppender("/var/www/service/kpr/reminds.txt", ';');
+	$fa = new FileAppender("reminds.txt", ';');
 	$reminds = $fa->getAll();
 
 	if ($clear)
@@ -121,6 +139,12 @@ function readReminds($clear = false){
 function getHelp(){
 	return <<<_END
 - - - Справка - - -
+
+!keyboard - получить/обновить клавиатуру
+
+!рассылка - получать сообщения в лс (расписание на каждый день, новости и т.д.)
+
+!новость (ответ на сообщение или пересылаемое сообщение) - добавить новость
 
 новости - новости &#128528;
 
