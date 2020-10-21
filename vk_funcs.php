@@ -11,6 +11,19 @@ function sendRequest($method, $params){
 	return file_get_contents("https://api.vk.com/method/".$method."?" . http_build_query($params));
 }
 
+function userGet($id) {
+	$q = [
+		"v" => "5.124",
+		"name_case" => "Nom",
+		"user_ids" => $id
+	];
+	$result = json_decode(sendRequest("users.get", $q), true);
+	if (!empty($result['response']))
+		return $result['response'][0];
+	else
+		return null;
+}
+
 function sendMessage($peer_id, $message, $attachment = null, $keyboard = null){
 	$q = [
 		"v" => "5.101",
@@ -72,7 +85,7 @@ function getRaspList($msg = true, $date = "сегодня", $day_n = null, $week
 			$result .= "&#127379; Нет пары\n";
 		else {
 			$item_hw = empty($hw[$index + 1]) ? "" : ": " . $hw[$index + 1];
-			if ($item_hw != ": !free")
+			if (trim($item_hw) != ": !free")
 				$result .= sprintf("%d&#8419; %s -- %s [%s]%s\n", $index + 1, 
 										    $item[0], 
 										    $item[1], 
@@ -125,8 +138,6 @@ function writeRemind($text){
 }
 
 function readReminds($clear = false){
-	mb_internal_encoding("UTF-8");
-	
 	$fa = new FileAppender("reminds.txt", ';');
 	$reminds = $fa->getAll();
 

@@ -11,8 +11,6 @@ $rasp_doc = "doc-186344202_568844688";
 
 if (!isset($_REQUEST)) return;
 
-mb_internal_encoding("UTF-8");
-
 $req = json_decode(file_get_contents("php://input"));
 
 if ($req->secret != $secret_key && $req->type != "confirmation") return;
@@ -113,11 +111,20 @@ switch($req->type){
 			}
 			echo "ok";
 			die();
-		 } elseif (mb_strtolower($text) == "новости") {
+		} elseif (mb_strtolower($text) == "новости") {
 			$dbw = new DbWorker();
 			sendMessage($peer, $dbw->getText());
-		 }
+		}
 
+		if (mb_strtolower($text) == "бан" && !empty($obj->reply_message)) {
+			$ban_text = "ушёл в бан нахуй";
+			$u = userGet($obj->reply_message->from_id);
+			if (isset($u))
+				$print = sprintf("[id%d|%s. %s] %s", $u['id'], mb_substr($u['first_name'], 0, 1), $u['last_name'], $ban_text);
+			else
+				$print = "Себя забань!";
+			sendMessage($peer, $print);
+		}
 
 
 		$c = new Commander([

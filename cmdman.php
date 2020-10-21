@@ -1,7 +1,5 @@
 <?php
 
-mb_regex_encoding("UTF-8");
-
 class Commander{
 	private $commands, $error;
 
