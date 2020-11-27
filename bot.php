@@ -98,13 +98,13 @@ switch($req->type){
 					$dbw->add($res);
 					
 					makeNewsletter($res);
-					sendMessage($peer, "&#9989; Новость успешно добавлена", null, json_encode(getButtons($dbw->getCount())));
+					sendMessage($peer, "&#9989; Новость успешно добавлена");
 				} elseif (!empty($obj->reply_message)) {
 					$dbw = new DbWorker();
 					$dbw->add($obj->reply_message->text);
 
 					makeNewsletter($obj->reply_message->text);
-					sendMessage($peer, "&#9989; Новость успешно добавлена", null, json_encode(getButtons($dbw->getCount())));
+					sendMessage($peer, "&#9989; Новость успешно добавлена");
 				} else{
 					sendMessage($peer, "Пустое сообщение");
 				}
@@ -202,7 +202,7 @@ switch($req->type){
 					if (is_numeric($id)) {
 						$dbw = new DbWorker();
 						$dbw->delete($id);
-						sendMessage($peer, "Запись " . $id . " удалена.", null, json_encode(getButtons($dbw->getCount())));
+						sendMessage($peer, "Запись " . $id . " удалена.");
 					} else {
 						sendMessage($peer, "&#9888; Введите правильный id");
 					}
@@ -213,9 +213,9 @@ switch($req->type){
 				sendMessage($peer, "Расписание КПР-21. Последнее обновление: " . $rasp_last_update . ".", $rasp_doc);
 			},
 
-			"keyboard" => function () use ($peer) {
+			"keyboard" => function () use ($peer, $buttons) {
 				$dbw = new DbWorker();
-				sendMessage($peer, "Клавиатура включена", null, json_encode(getButtons($dbw->getCount())));
+				sendMessage($peer, "Клавиатура включена", null, json_encode($buttons)); 
 			},
 
 			"keyboarddel" => function () use ($peer, $buttons_clear) {

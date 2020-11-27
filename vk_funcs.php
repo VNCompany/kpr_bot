@@ -24,11 +24,11 @@ function userGet($id) {
 		return null;
 }
 
-function sendMessage($peer_id, $message, $attachment = null, $keyboard = null){
+function sendMessage($peer_id, $message, $attachment = null, $keyboard = null, $callback = null){
 	$q = [
-		"v" => "5.101",
+		"v" => "5.126",
 		"random_id" => rand(0, getrandmax()),
-		"peer_id" => $peer_id,
+		"peer_ids" => $peer_id,
 		"message" => $message
 	];
 
@@ -43,14 +43,13 @@ function sendMessage($peer_id, $message, $attachment = null, $keyboard = null){
 
 function sendMessageToIds($user_ids, $message, $keyboard = null) {
 	$q = [
-		"v" => "5.101",
+		"v" => "5.126",
 		"random_id" => rand(0, getrandmax()),
-		"user_ids" => implode(',', $user_ids),
+		"peer_ids" => implode(',', $user_ids),
 		"message" => $message
 	];
 	if (isset($keyboard)) $q['keyboard'] = $keyboard;
-
-	return sendRequest("messages.send", $q);
+	sendRequest("messages.send", $q);
 }
 
 function getWeekType($reverse = false){

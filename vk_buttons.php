@@ -36,15 +36,6 @@ $buttons = [
 	]
 ];
 
-function getButtons($news_count) {
-	global $buttons;
-	if ($news_count > 0) {
-		$buttons['buttons'][0][0]['action']['label'] .= ' [' . $news_count . ']';
-		$buttons['buttons'][0][0]['color'] = "primary";
-	}
-	return $buttons;
-}
-
 $msg_buttons = [
 	"one_time" => false,
 	"inline" => true,
